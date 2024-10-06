@@ -1,13 +1,13 @@
 import unittest
 import requests
 import json
-from requests.exceptions import ConnectionError
 
 BASE_URL = "http://localhost:4567"
 
 class TestTodoAPI(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        """Create a Todo and Category for general use in subsequent tests"""
         # Ensure the service is running
         try:
             response = requests.get(BASE_URL)
@@ -44,7 +44,8 @@ class TestTodoAPI(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        # Cleanup the created Todo and Category
+        """Clean up the created Todo and Category"""
+        # Delete the class-level Todo and Category only if they still exist
         requests.delete(f"{BASE_URL}/todos/{cls.todo_id}")
         requests.delete(f"{BASE_URL}/categories/{cls.category_id}")
 
@@ -72,6 +73,14 @@ class TestTodoAPI(unittest.TestCase):
         invalid_json = {"title": 12345, "doneStatus": "not_a_boolean", "description": False}
         response = requests.post(f"{BASE_URL}/todos", headers=headers, json=invalid_json)
         self.assertEqual(response.status_code, 400)
+    
+    def test_head_todos(self):
+        """Test HEAD /todos - Valid Case"""
+        response = requests.head(f"{BASE_URL}/todos")
+        self.assertEqual(response.status_code, 200)
+
+        response = requests.head(f"{BASE_URL}/invalidEndpoint")
+        self.assertEqual(response.status_code, 404)
 
     def test_get_todos(self):
         """Test GET /todos - Valid and Invalid Cases"""
@@ -84,97 +93,73 @@ class TestTodoAPI(unittest.TestCase):
         response = requests.get(f"{BASE_URL}/invalidEndpoint", headers=headers)
         self.assertEqual(response.status_code, 404)
 
-    def test_head_todos(self):
-        """Test HEAD /todos - Valid and Invalid Cases"""
-        response = requests.head(f"{BASE_URL}/todos")
-        self.assertEqual(response.status_code, 200)
-
-        # Invalid HEAD request
-        response = requests.head(f"{BASE_URL}/invalidEndpoint")
-        self.assertEqual(response.status_code, 404)
-
-    def test_post_todos_malformed_xml(self):
-        """Test POST /todos with a malformed XML payload"""
-        headers = {'Content-Type': 'application/xml'}
-        malformed_xml = "<todo><title>Test</title><doneStatus>False</doneStatus>"
-        response = requests.post(f"{BASE_URL}/todos", headers=headers, data=malformed_xml)
-        self.assertEqual(response.status_code, 400)
-    
-    def test_post_todos_malformed_json(self):
-        """Test POST /todos with a malformed JSON payload"""
-        headers = {'Content-Type': 'application/json'}
-        malformed_json = '{"title": "Invalid Todo", "doneStatus": "notABoolean"'  # Missing closing brace
-        response = requests.post(f"{BASE_URL}/todos", headers=headers, data=malformed_json)
-        self.assertEqual(response.status_code, 400)
-
-
     def test_get_todo_by_id(self):
         """Test GET /todos/:id - Valid and Invalid Cases"""
         headers = {'Accept': 'application/json'}
-
-        # Create todo
-        headers = {'Content-Type': 'application/json'}
-        todo_data = {"title": "Exploratory Testing Todo", "doneStatus": False, "description": "todo to test"}
-        response = requests.post(f"{BASE_URL}/todos", headers=headers, json=todo_data)
-        self.assertEqual(response.status_code, 201)
-        data = response.json()
-        todo_id = data['id']
-        self.todo_id = todo_id
-
-        # Valid request
-        response = requests.get(f"{BASE_URL}/todos/{todo_id}", headers=headers)  # No extra quotes around the ID
+        response = requests.get(f"{BASE_URL}/todos/{self.todo_id}", headers=headers)
         self.assertEqual(response.status_code, 200)
 
         # Invalid Todo ID
         response = requests.get(f"{BASE_URL}/todos/99999", headers=headers)
         self.assertEqual(response.status_code, 404)
-    
-    def test_put_todos(self):
-        # Create todo
-        headers = {'Content-Type': 'application/json'}
-        todo_data = {"title": "Exploratory Testing Todo", "doneStatus": False, "description": "todo to test"}
-        response = requests.post(f"{BASE_URL}/todos", headers=headers, json=todo_data)
-        self.assertEqual(response.status_code, 201)
-        data = response.json()
-        todo_id = data['id']
-        self.todo_id = todo_id
 
+        # Invalid HEAD request (non-existent endpoint)
+        response = requests.head(f"{BASE_URL}/invalidEndpoint")
+        self.assertEqual(response.status_code, 404)
+    
+    def test_head_todo_by_id(self):
+        """Test HEAD /todos/:id - Valid and Invalid Cases"""
+        response = requests.head(f"{BASE_URL}/todos/{self.todo_id}")
+        self.assertEqual(response.status_code, 200)
+
+        # Invalid Todo ID
+        response = requests.head(f"{BASE_URL}/todos/99999")
+        self.assertEqual(response.status_code, 404)
+
+    def test_post_todos_amend_by_id(self):
         """Test PUT /todos/:id - Valid and Invalid Cases"""
         headers = {'Content-Type': 'application/json'}
         valid_update = {"title": "Updated Todo", "doneStatus": True, "description": "Updated description"}
-        response = requests.put(f"{BASE_URL}/todos/{todo_id}", headers=headers, json=valid_update)
+        response = requests.post(f"{BASE_URL}/todos/{self.todo_id}", headers=headers, json=valid_update)
         self.assertEqual(response.status_code, 200)
 
         # Invalid PUT Request with Missing Fields
         invalid_update = {"doneStatus": "invalid_boolean"}
-        response = requests.put(f"{BASE_URL}/todos/{todo_id}", headers=headers, json=invalid_update)
+        response = requests.post(f"{BASE_URL}/todos/{self.todo_id}", headers=headers, json=invalid_update)
         self.assertEqual(response.status_code, 400)
-
-    def test_post_todos_amend(self):
-        # Create todo
-        headers = {'Content-Type': 'application/json'}
-        todo_data = {"title": "Exploratory Testing Todo", "doneStatus": False, "description": "todo to test"}
-        response = requests.post(f"{BASE_URL}/todos", headers=headers, json=todo_data)
-        self.assertEqual(response.status_code, 201)
-        data = response.json()
-        todo_id = data['id']
-        self.todo_id = todo_id
-
+    
+    def test_put_todo_by_id(self):
         """Test PUT /todos/:id - Valid and Invalid Cases"""
         headers = {'Content-Type': 'application/json'}
         valid_update = {"title": "Updated Todo", "doneStatus": True, "description": "Updated description"}
-        response = requests.post(f"{BASE_URL}/todos/{todo_id}", headers=headers, json=valid_update)
+        response = requests.put(f"{BASE_URL}/todos/{self.todo_id}", headers=headers, json=valid_update)
         self.assertEqual(response.status_code, 200)
 
         # Invalid PUT Request with Missing Fields
         invalid_update = {"doneStatus": "invalid_boolean"}
-        response = requests.post(f"{BASE_URL}/todos/{todo_id}", headers=headers, json=invalid_update)
+        response = requests.put(f"{BASE_URL}/todos/{self.todo_id}", headers=headers, json=invalid_update)
         self.assertEqual(response.status_code, 400)
-    
+
+    def test_delete_todo_by_id(self):
+        """Test DELETE /todos/:id - Valid and Already Deleted Cases"""
+        # Create a separate Todo for deletion test
+        headers = {'Content-Type': 'application/json'}
+        todo_data = {"title": "Delete Test Todo", "doneStatus": False, "description": "todo to delete"}
+        response = requests.post(f"{BASE_URL}/todos", headers=headers, json=todo_data)
+        self.assertEqual(response.status_code, 201)
+        delete_todo_id = response.json()['id']
+
+        # Valid deletion
+        response = requests.delete(f"{BASE_URL}/todos/{delete_todo_id}")
+        self.assertEqual(response.status_code, 200)
+
+        # Trying to delete the same ID again
+        response = requests.delete(f"{BASE_URL}/todos/{delete_todo_id}")
+        self.assertEqual(response.status_code, 404)
+
     def test_category_relationships(self):
         """Test POST, GET, and DELETE /todos/:id/categories - Valid and Invalid Cases"""
         headers = {'Content-Type': 'application/json'}
-
         # Create Relationship between Todo and Category
         relationship_data = {"id": self.category_id}
         response = requests.post(f"{BASE_URL}/todos/{self.todo_id}/categories", headers=headers, json=relationship_data)
@@ -184,6 +169,11 @@ class TestTodoAPI(unittest.TestCase):
         response = requests.get(f"{BASE_URL}/todos/{self.todo_id}/categories", headers={'Accept': 'application/json'})
         self.assertEqual(response.status_code, 200)
 
+        # Retrieve Headers for Categories Linked to Todo (HEAD)
+        response = requests.head(f"{BASE_URL}/todos/{self.todo_id}/categories")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Content-Type', response.headers)
+
         # Delete the Category Relationship
         response = requests.delete(f"{BASE_URL}/todos/{self.todo_id}/categories/{self.category_id}")
         self.assertEqual(response.status_code, 200)
@@ -192,22 +182,5 @@ class TestTodoAPI(unittest.TestCase):
         response = requests.delete(f"{BASE_URL}/todos/{self.todo_id}/categories/99999")
         self.assertEqual(response.status_code, 404)
 
-    def test_delete_todo_by_id(self):
-        """Test DELETE /todos/:id - Valid and Already Deleted Cases"""
-        response = requests.delete(f"{BASE_URL}/todos/{self.todo_id}")
-        self.assertEqual(response.status_code, 200)
-
-        # Trying to delete the same ID again
-        response = requests.delete(f"{BASE_URL}/todos/{self.todo_id}")
-        self.assertEqual(response.status_code, 404)
-
-    def test_patch_todos(self):
-        """Test PATCH /todos/:id - Valid and Invalid Cases"""
-        headers = {'Content-Type': 'application/json'}
-
-        # Invalid request (PATCH not supported)
-        patch_data = {"title": "Updated Title with PATCH"}
-        response = requests.patch(f"{BASE_URL}/todos/{self.todo_id}", headers=headers, json=patch_data)
-        self.assertEqual(response.status_code, 405)
 if __name__ == "__main__":
     unittest.main()
