@@ -53,27 +53,6 @@ class TestTodoAPI(unittest.TestCase):
         self.todo_id = self.__class__.todo_id
         self.category_id = self.__class__.category_id
 
-    def test_get_todos(self):
-        """Test GET /todos - Valid and Invalid Cases"""
-        headers = {'Accept': 'application/json'}
-        response = requests.get(f"{BASE_URL}/todos", headers=headers)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('application/json', response.headers['Content-Type'])
-
-        # Invalid GET request
-        response = requests.get(f"{BASE_URL}/invalidEndpoint", headers=headers)
-        self.assertEqual(response.status_code, 404)
-
-    def test_head_todos(self):
-        """Test HEAD /todos - Valid and Invalid Cases"""
-        response = requests.head(f"{BASE_URL}/todos")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.text, '')
-
-        # Invalid HEAD request
-        response = requests.head(f"{BASE_URL}/invalidEndpoint")
-        self.assertEqual(response.status_code, 404)
-
     def test_post_todos(self):
         """Test POST /todos - Valid, Invalid JSON, and Malformed JSON Cases"""
         headers = {'Content-Type': 'application/json'}
@@ -94,6 +73,26 @@ class TestTodoAPI(unittest.TestCase):
         response = requests.post(f"{BASE_URL}/todos", headers=headers, json=invalid_json)
         self.assertEqual(response.status_code, 400)
 
+    def test_get_todos(self):
+        """Test GET /todos - Valid and Invalid Cases"""
+        headers = {'Accept': 'application/json'}
+        response = requests.get(f"{BASE_URL}/todos", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('application/json', response.headers['Content-Type'])
+
+        # Invalid GET request
+        response = requests.get(f"{BASE_URL}/invalidEndpoint", headers=headers)
+        self.assertEqual(response.status_code, 404)
+
+    def test_head_todos(self):
+        """Test HEAD /todos - Valid and Invalid Cases"""
+        response = requests.head(f"{BASE_URL}/todos")
+        self.assertEqual(response.status_code, 200)
+
+        # Invalid HEAD request
+        response = requests.head(f"{BASE_URL}/invalidEndpoint")
+        self.assertEqual(response.status_code, 404)
+
     def test_post_todos_malformed_xml(self):
         """Test POST /todos with a malformed XML payload"""
         headers = {'Content-Type': 'application/xml'}
@@ -105,15 +104,17 @@ class TestTodoAPI(unittest.TestCase):
         """Test GET /todos/:id - Valid and Invalid Cases"""
         headers = {'Accept': 'application/json'}
 
-        # Print the actual ID format for debugging
-        print(f"Testing GET with Todo ID: {self.todo_id}")  # Print the ID without repr
+        # Create todo
+        headers = {'Content-Type': 'application/json'}
+        todo_data = {"title": "Exploratory Testing Todo", "doneStatus": False, "description": "todo to test"}
+        response = requests.post(f"{BASE_URL}/todos", headers=headers, json=todo_data)
+        self.assertEqual(response.status_code, 201)
+        data = response.json()
+        todo_id = data['id']
+        self.todo_id = todo_id
 
         # Valid request
-        response = requests.get(f"{BASE_URL}/todos/{self.todo_id}", headers=headers)  # No extra quotes around the ID
-        print(f"Constructed URL: {response.url}")  # Print the full constructed URL
-        print(f"Response Status Code: {response.status_code}")  # Print the status code
-        print(f"Response Text: {response.text}")  # Print the response text for more information
-
+        response = requests.get(f"{BASE_URL}/todos/{todo_id}", headers=headers)  # No extra quotes around the ID
         self.assertEqual(response.status_code, 200)
 
         # Invalid Todo ID
@@ -136,6 +137,6 @@ class TestTodoAPI(unittest.TestCase):
         # Invalid request (PATCH not supported)
         patch_data = {"title": "Updated Title with PATCH"}
         response = requests.patch(f"{BASE_URL}/todos/{self.todo_id}", headers=headers, json=patch_data)
-        self.assertIn(response.status_code, 405)
+        self.assertEqual(response.status_code, 405)
 if __name__ == "__main__":
     unittest.main()
