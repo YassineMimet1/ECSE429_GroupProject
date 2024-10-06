@@ -34,7 +34,7 @@ Preparation:
 2. Review the API Documentation at: `http://localhost:4567/docs`
 
 ---------------------------------------------------------
-Session Start Time: 2:15 PM
+Session Start Time: 2:29 PM
 ---------------------------------------------------------
 Testers:
 - Name: Wasif Somji  
@@ -46,6 +46,8 @@ Testing Tools Used:
 ---------------------------------------------------------
 - Tool: `curl` (Terminal)
 - Documentation: Used Swagger UI (`http://localhost:4567/docs/swagger`)
+
+--> We'll start with capability testing.
 
 ---------------------------------------------------------
 Test Scenarios and Execution: '/todos'
@@ -88,7 +90,7 @@ Scenario 3: Create a New Todo Item
 ---------------------------------------------------------
 Test Scenarios and Execution: '/todos/:id'
 ---------------------------------------------------------
-Scenario 1: Retrieve a Speicfic Todo item by ID (ID = 4)
+Scenario 1: Retrieve a Specific Todo item by ID (ID = 4)
 ---------------------------------------------------------
 1. Description: Use a GET request to retrieve the details of a specific todo item using its ID
 2. Command: curl -X GET http://localhost:4567/todos/4 -H "Accept: application/json"
@@ -144,16 +146,88 @@ Scenario 4: Delete a Specific Todo Item by ID
 3. Expected output: N/A
 4. Result: The request did not output anything. To verify deletion, we ran curl -X GET http://localhost:4567/todos/4 -H "Accept: application/json" and obtained the following:
 {"errorMessages":["Could not find an instance with todos/4"]}, verifying that the Todo was deleted.
-5. Observation: The item was deleted correcly.
+5. Observation: The item was verified to be deleted correctly.
 ---------------------------------------------------------
-Test Scenarios and Execution: '/todos/:id'
+Test Scenarios and Execution: '/todos/:id/categories'
+---------------------------------------------------------
+Scenario 1: Create a Relationship Between a Specific Todo Item and a Category Using POST
+---------------------------------------------------------
+1. Description: Use a POST request to create a relationship named categories between a specific todo item with ID and a category with ID. To preface this, we created a Todo with ID = 5 and a Category with ID = 3.
+2. Command: 
+    curl -X POST http://localhost:4567/todos/5/categories \
+    -H "Content-Type: application/json" \
+    -d '{
+    "id": "3"
+    }'
+3. Expected output: N/A
+4. Result: The request did not output anything. To verify creation of the relationship, we'll use the next scenario.
+5. Observation: From the results of our next scenario, we can see the relationship was created successfully.
+---------------------------------------------------------
+Scenario 2: Retrieve All Categories Related to a Specific Todo Item by ID Using GET
+---------------------------------------------------------
+1. Description: Use a GET request to retrieve all the category items related to a specific todo item using its ID.
+2. Command: curl -X GET http://localhost:4567/todos/5/categories -H "Accept: application/json"
+3. Expected output: The category we just created the relationship with 
+4. Result: {"categories":[{"id":"3","title":"Test Category for Exploratory Testing","description":"Category for holding test todos"}]}%  
+5. Observation: The relationship was created successfully. 
+---------------------------------------------------------
+Scenario 3: Retrieve Headers for All Categories Related to a Specific Todo Item by ID Using HEAD
+---------------------------------------------------------
+1. Description: Use a HEAD request to retrieve only the headers for all the category items related to a specific todo item using its ID.
+2. Command: curl -I http://localhost:4567/todos/5/categories
+3. Expected output: Expected Output: Status code 200 and response headers displayed
+4. Result: 
+    HTTP/1.1 200 OK
+    Date: Sun, 06 Oct 2024 19:14:30 GMT
+    Content-Type: application/json
+    Transfer-Encoding: chunked
+    Server: Jetty(9.4.z-SNAPSHOT)
+5. Observation: The response was successful with a 200 OK status. The headers were correctly returned without the response body, verifying that the HEAD request is functioning as expected.
+---------------------------------------------------------
+Test Scenarios and Execution: '/todos/:id/categories/:id'
+---------------------------------------------------------
+Scenario 1: Delete the Category Relationship from a Specific Todo Item using ID
+---------------------------------------------------------
+1. Description: Use a DELETE request to delete the relationship between a specific todo item and a category. This request removes the association between the todo and the specified category.
+2. Command: curl -X DELETE http://localhost:4567/todos/5/categories/3
+3. Expected output: N/A
+4. Result: The request did not output anything. To verify deletion, we ran curl -X GET http://localhost:4567/todos/5/categories -H "Accept: application/json" and obtained the following:
+{"categories":[]}, verifying that the relationship was deleted.
+5. Observation: The relationship was verified to be deleted correctly.
 ---------------------------------------------------------
 
+--> Next, we'll attempt to identify areas of potential instability.
 
+- I tested using various methods, such as missing headers, using a string instead of boolean for the 'doneStatus' field when creating / updating a todo object.
+E.g. I ran this: 
+    curl -X POST http://localhost:4567/todos \
+    -H "Content-Type: application/json" \
+    -d '{
+    "doneStatus": "notABoolean",
+    "description": "Invalid boolean for doneStatus"
+    }'
+And this was the output: 
+    {"errorMessages":["Failed Validation: doneStatus should be BOOLEAN"]}
 
+I also tested simultaneously creating todos with the following command: 
+    for i in {1..20}; do curl -X POST http://localhost:4567/todos \
+    -H "Content-Type: application/json" \
+    -d '{
+    "title": "Simultaneous Todo '$i'",
+    "doneStatus": false,
+    "description": "Testing concurrency"
+    }' & done
+Result: 
+    The program performed flawlessly, outputting the JSON format for all 20 objects as expected.
 
-
-
+I also tested an undocumented method like PATCH to update the fields:
+    curl -X PATCH http://localhost:4567/todos/5 \
+    -H "Content-Type: application/json" \
+    -d '{
+    "title": "Updated Title with PATCH"
+    }'
+Result:
+    Did not update the title correctly.
 
 
 
