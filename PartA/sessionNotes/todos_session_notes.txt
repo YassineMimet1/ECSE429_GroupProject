@@ -1,0 +1,18 @@
+# Exploratory Testing Session Notes
+
+**Project Name**: REST API Todo List Manager  
+**Session Date**: [Insert Date]  
+**Duration**: 45 minutes  
+**Environment**:  
+- OS: Windows 10  
+- Screen Resolution: 1920x1080  
+- Java Version: [Specify Version]  
+- Browser/Tool Used: `curl` (Command Line Interface)
+
+## Charter
+Identify the capabilities and areas of potential instability in the REST API Todo List Manager application. Focus on testing the functionality related to managing `todos` using `curl`. This includes creating, retrieving, updating, and deleting `todos`, as well as checking data consistency and error handling.
+
+## Preparation
+1. **Start the Application**:  
+   ```bash
+   java -jar runTodoManagerRestAPI-1.5.5.jar
