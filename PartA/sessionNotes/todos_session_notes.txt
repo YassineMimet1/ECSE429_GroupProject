@@ -1,18 +1,91 @@
-# Exploratory Testing Session Notes
+---------------------------------------------------------
+Project Name: REST API Todo List Manager
+Session Date: Oct 6, 2024
+Duration: 45 minutes
+Environment: 
+  - OS: MacOS
+  - Screen Resolution: 1920x1080
+  - Browser/Tool Used: curl (Terminal)
 
-**Project Name**: REST API Todo List Manager  
-**Session Date**: [Insert Date]  
-**Duration**: 45 minutes  
-**Environment**:  
-- OS: Windows 10  
-- Screen Resolution: 1920x1080  
-- Java Version: [Specify Version]  
-- Browser/Tool Used: `curl` (Command Line Interface)
-
-## Charter
+---------------------------------------------------------
+Charter:
+---------------------------------------------------------
 Identify the capabilities and areas of potential instability in the REST API Todo List Manager application. Focus on testing the functionality related to managing `todos` using `curl`. This includes creating, retrieving, updating, and deleting `todos`, as well as checking data consistency and error handling.
+---------------------------------------------------------
+Preparation:
+---------------------------------------------------------
+1. Start the Application: 
+   Command: java -jar runTodoManagerRestAPI-1.5.5.jar
+   Output: Valid Model Names -model=
+        todoManager
+        Model todoManager : Number of app versions available (e.g. -version=2, -versionName=profile1) are: 4
+        1 - v0 : prototype
+        2 - v1 : non compressed relationships with guids
+        3 - v2 : compressed relationships with guids
+        4 - v3 : compressed relationships with ids
+        SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+        SLF4J: Defaulting to no-operation (NOP) logger implementation
+        SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+        Using model todoManager
+        Will configure app as release version v3 : compressed relationships with ids 
+        Running on 4567
+        e.g. http://localhost:4567
 
-## Preparation
-1. **Start the Application**:  
-   ```bash
-   java -jar runTodoManagerRestAPI-1.5.5.jar
+2. Review the API Documentation at: `http://localhost:4567/docs`
+
+---------------------------------------------------------
+Session Start Time: 2:15 PM
+---------------------------------------------------------
+Testers:
+- Name: Wasif Somji  
+- Email: wasif.somji@mail.mcgill.ca  
+- Student ID: 261003295
+
+---------------------------------------------------------
+Testing Tools Used:
+---------------------------------------------------------
+- Tool: `curl` (Terminal)
+- Documentation: Used Swagger UI (`http://localhost:4567/docs/swagger`)
+
+---------------------------------------------------------
+Test Scenarios and Execution: '/todos'
+---------------------------------------------------------
+Scenario 1: Verify GET Request for All Todos
+---------------------------------------------------------
+1. Description: Retrieve all todos to verify the basic `GET` functionality.
+2. Command: curl -X GET http://localhost:4567/todos -H "Accept: application/json"
+3. Expected Output: Status code `200` and a list of todos in JSON format.
+4. Result: {"todos":[{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","categories":[{"id":"1"}],"tasksof":[{"id":"1"}]},{"id":"2","title":"file paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}]}]} 
+5. Observation: The response was successful, and the data matches the expected format.
+---------------------------------------------------------
+Scenario 2: Verify HEAD Request for All Todos
+---------------------------------------------------------
+1. Description: Use a HEAD request to retrieve only the headers for all todos to verify the presence of metadata without fetching the content.
+2. Command: curl -I http://localhost:4567/todos
+3. Expected Output: Status code `200` and response headers displayed
+4. Result: 
+    HTTP/1.1 200 OK
+    Date: Sun, 06 Oct 2024 18:29:59 GMT
+    Content-Type: application/json
+    Transfer-Encoding: chunked
+    Server: Jetty(9.4.z-SNAPSHOT)
+5. Observation: The response was successful with a 200 OK status. The headers were correctly returned without the response body, verifying that the HEAD request is functioning as expected.
+---------------------------------------------------------
+Scenario 3: Create a New Todo Item
+---------------------------------------------------------
+1. Description: Create a new todo item using `POST` and verify that it is successfully created.
+2. Command: 
+    curl -X POST http://localhost:4567/todos \
+    -H "Content-Type: application/json" \
+    -d '{
+    "title": "Exploratory Testing Todo",
+    "doneStatus": false,
+    "description": "todo to test"
+    }'
+3. Expected Output: We see a new todo item in the response.
+4. Result: {"id":"4","title":"Exploratory Testing Todo","doneStatus":"false","description":"todo to test"}
+5. Observation: The response was successful, and the data matches the expected format.
+---------------------------------------------------------
+
+
+
