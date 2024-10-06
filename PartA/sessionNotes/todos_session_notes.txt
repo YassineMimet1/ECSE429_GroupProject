@@ -229,5 +229,7 @@ I also tested an undocumented method like PATCH to update the fields:
 Result:
     Did not update the title correctly.
 
+These are the results I was able to obtain in 45 minutes. I will now move onto writing unit tests for the Todos relating to this charter.
+
 
 
