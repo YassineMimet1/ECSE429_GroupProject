@@ -182,5 +182,27 @@ class TestTodoAPI(unittest.TestCase):
         response = requests.delete(f"{BASE_URL}/todos/{self.todo_id}/categories/99999")
         self.assertEqual(response.status_code, 404)
 
+    def test_post_todo_invalid_done_status(self):
+        """Test POST /todos - Invalid data type for `doneStatus` field"""
+        headers = {'Content-Type': 'application/json'}
+        invalid_todo = {"title": "Invalid Todo", "doneStatus": "notABoolean", "description": "Invalid boolean for doneStatus"}
+        response = requests.post(f"{BASE_URL}/todos", headers=headers, json=invalid_todo)
+        self.assertEqual(response.status_code, 400)  # Expecting Bad Request due to invalid data type
+
+    def test_post_to_invalid_todo_id(self):
+        """Test POST /todos/:id - Using POST to an unsupported endpoint"""
+        headers = {'Content-Type': 'application/json'}
+        # Attempt to POST to a non-existent Todo ID
+        invalid_post_data = {"title": "Invalid POST"}
+        response = requests.post(f"{BASE_URL}/todos/9999", headers=headers, json=invalid_post_data)
+        self.assertEqual(response.status_code, 404)  # Expecting Not Found due to non-existent ID
+
+    def test_patch_undocumented_method(self):
+        """Test PATCH /todos/:id - Attempting to update with PATCH (undocumented)"""
+        headers = {'Content-Type': 'application/json'}
+        patch_data = {"title": "Updated Title with PATCH"}
+        response = requests.patch(f"{BASE_URL}/todos/{self.todo_id}", headers=headers, json=patch_data)
+        self.assertEqual(response.status_code, 405)  # Expecting Method Not Allowed as PATCH is not supported
+
 if __name__ == "__main__":
     unittest.main()
