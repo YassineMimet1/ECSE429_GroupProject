@@ -82,10 +82,78 @@ Scenario 3: Create a New Todo Item
     "doneStatus": false,
     "description": "todo to test"
     }'
-3. Expected Output: We see a new todo item in the response.
+3. Expected Output: A new todo item is displayed in the response.
 4. Result: {"id":"4","title":"Exploratory Testing Todo","doneStatus":"false","description":"todo to test"}
 5. Observation: The response was successful, and the data matches the expected format.
 ---------------------------------------------------------
+Test Scenarios and Execution: '/todos/:id'
+---------------------------------------------------------
+Scenario 1: Retrieve a Speicfic Todo item by ID (ID = 4)
+---------------------------------------------------------
+1. Description: Use a GET request to retrieve the details of a specific todo item using its ID
+2. Command: curl -X GET http://localhost:4567/todos/4 -H "Accept: application/json"
+3. Expected output: The single todo item with ID 4 in a list by itself 
+4. Result: {"todos":[{"id":"4","title":"Exploratory Testing Todo","doneStatus":"false","description":"todo to test"}]}%  
+5. Observation: The response was successful, and the data matches the expected format.
+---------------------------------------------------------
+Scenario 2: Verify HEAD Request for a Specific Todo Item by ID (ID = 4)
+---------------------------------------------------------
+1. Description: Use a HEAD request to retrieve only the headers for a specific todo item using its ID. 
+2. Command: curl -I http://localhost:4567/todos/4
+3. Expected output: Expected Output: Status code 200 and response headers displayed
+4. Result: 
+    HTTP/1.1 200 OK
+    Date: Sun, 06 Oct 2024 18:48:46 GMT
+    Content-Type: application/json
+    Transfer-Encoding: chunked
+    Server: Jetty(9.4.z-SNAPSHOT)
+5. Observation: The response was successful with a 200 OK status. The headers were correctly returned without the response body, verifying that the HEAD request is functioning as expected.
+---------------------------------------------------------
+Scenario 3: Amend a Specific Todo Item by ID Using POST
+---------------------------------------------------------
+1. Description: Use a POST request to amend a specific todo item using its ID. The POST request should modify only the fields specified in the body.
+2. Command: 
+    curl -X POST http://localhost:4567/todos/4 \
+    -H "Content-Type: application/json" \
+    -d '{
+    "title": "Updated Exploratory Testing Todo",
+    "description": "Updated description for the todo item"
+    }'
+3. Expected output: Expected Output: Status code 200 and the amended details of the specific todo item in JSON format
+4. Result: {"id":"4","title":"Updated Exploratory Testing Todo","doneStatus":"false","description":"Updated description for the todo item"}
+5. Observation: The response was successful, and the data matches the expected format.
+---------------------------------------------------------
+Scenario 4: Amend a Specific Todo Item by ID Using PUT
+---------------------------------------------------------
+1. Description: Use a PUT request to amend a specific todo item using its ID. The PUT request should modify only the fields specified in the body.
+2. Command: 
+    curl -X PUT http://localhost:4567/todos/4 \
+    -H "Content-Type: application/json" \
+    -d '{
+    "title": "Updated Exploratory Testing Todo x2",
+    "description": "Updated description for the todo item x2"
+    }'
+3. Expected output: Expected Output: Status code 200 and the amended details of the specific todo item in JSON format
+4. Result: {"id":"4","title":"Updated Exploratory Testing Todo x2","doneStatus":"false","description":"Updated description for the todo item x2"}
+5. Observation: The response was successful, and the data matches the expected format.
+---------------------------------------------------------
+Scenario 4: Delete a Specific Todo Item by ID
+---------------------------------------------------------
+1. Description: Use a DELETE request to delete a specific todo item using its ID.
+2. Command: curl -X DELETE http://localhost:4567/todos/4
+3. Expected output: N/A
+4. Result: The request did not output anything. To verify deletion, we ran curl -X GET http://localhost:4567/todos/4 -H "Accept: application/json" and obtained the following:
+{"errorMessages":["Could not find an instance with todos/4"]}, verifying that the Todo was deleted.
+5. Observation: The item was deleted correcly.
+---------------------------------------------------------
+Test Scenarios and Execution: '/todos/:id'
+---------------------------------------------------------
+
+
+
+
+
+
 
 
 
