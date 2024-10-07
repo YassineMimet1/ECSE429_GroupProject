@@ -1,0 +1,141 @@
+---------------------------------------------------------
+Project Name: REST API Todo List Manager
+Session Date: Oct 7, 2024
+Duration: 45 minutes
+Environment: 
+  - OS: MacOS
+  - Screen Resolution: 1920x1080
+  - Browser/Tool Used: curl (Terminal)
+
+---------------------------------------------------------
+Charter:
+---------------------------------------------------------
+Identify the capabilities and areas of potential instability in the REST API Todo List Manager application, focusing on testing the functionality related to managing `categories` using `curl`. This includes creating, retrieving, updating, and deleting categories, as well as checking data consistency, relationship management, and error handling.
+---------------------------------------------------------
+Preparation:
+---------------------------------------------------------
+1. Start the Application: 
+   Command: java -jar runTodoManagerRestAPI-1.5.5.jar
+   Output: Valid Model Names -model=
+        todoManager
+        Model todoManager : Number of app versions available (e.g. -version=2, -versionName=profile1) are: 4
+        1 - v0 : prototype
+        2 - v1 : non compressed relationships with guids
+        3 - v2 : compressed relationships with guids
+        4 - v3 : compressed relationships with ids
+        Using model todoManager
+        Running on port 4567
+        e.g. http://localhost:4567
+
+2. Review the API Documentation at: `http://localhost:4567/docs`
+
+---------------------------------------------------------
+Session Start Time: 3:00 PM
+---------------------------------------------------------
+Testers:
+- Name: Nagamasa Kagami  
+- Email: nagamasa.kagami@mail.mcgill.ca  
+- Student ID: 260123456
+
+---------------------------------------------------------
+Testing Tools Used:
+---------------------------------------------------------
+- Tool: `curl` (Terminal)
+- Documentation: Used Swagger UI (`http://localhost:4567/docs/swagger`)
+
+---------------------------------------------------------
+Test Scenarios and Execution: '/categories'
+---------------------------------------------------------
+Scenario 1: Verify GET Request for All Categories
+---------------------------------------------------------
+1. Description: Retrieve all categories to verify the basic `GET` functionality.
+2. Command: curl -X GET http://localhost:4567/categories -H "Accept: application/json"
+3. Expected Output: Status code `200` and a list of categories in JSON format.
+4. Result: {"categories":[{"id":"1","title":"Test Category","description":"Category for testing"}]} 
+5. Observation: The response was successful, and the data matches the expected format.
+---------------------------------------------------------
+Scenario 2: Verify HEAD Request for All Categories
+---------------------------------------------------------
+1. Description: Use a HEAD request to retrieve only the headers for all categories to verify the presence of metadata without fetching the content.
+2. Command: curl -I http://localhost:4567/categories
+3. Expected Output: Status code `200` and response headers displayed
+4. Result: 
+    HTTP/1.1 200 OK
+    Date: Mon, 07 Oct 2024 19:00:00 GMT
+    Content-Type: application/json
+    Server: Jetty(9.4.z-SNAPSHOT)
+5. Observation: The response was successful with a 200 OK status. The headers were correctly returned without the response body, verifying that the HEAD request is functioning as expected.
+---------------------------------------------------------
+Scenario 3: Create a New Category
+---------------------------------------------------------
+1. Description: Create a new category using `POST` and verify that it is successfully created.
+2. Command: 
+    curl -X POST http://localhost:4567/categories \
+    -H "Content-Type: application/json" \
+    -d '{
+    "title": "New Category",
+    "description": "This is a new test category"
+    }'
+3. Expected Output: A new category is displayed in the response.
+4. Result: {"id":"2","title":"New Category","description":"This is a new test category"}
+5. Observation: The response was successful, and the data matches the expected format.
+---------------------------------------------------------
+Scenario 4: Attempt to Create a Category with Malformed JSON
+---------------------------------------------------------
+1. Description: Send a POST request with malformed JSON to test the API's error handling.
+2. Command: 
+    curl -X POST http://localhost:4567/categories \
+    -H "Content-Type: application/json" \
+    -d '{"title": "Invalid Category", "description":'
+3. Expected Output: Error message and status code 400 Bad Request
+4. Result: {"errorMessages":["java.io.EOFException: End of input at line 1 column 45 path $."]}
+5. Observation: The API returns an error message but responds with status code `200` instead of `400 Bad Request`.
+---------------------------------------------------------
+Scenario 5: Retrieve a Specific Category by ID
+---------------------------------------------------------
+1. Description: Use a GET request to retrieve the details of a specific category by ID.
+2. Command: curl -X GET http://localhost:4567/categories/2 -H "Accept: application/json"
+3. Expected Output: The category with ID 2 in JSON format.
+4. Result: {"categories":[{"id":"2","title":"New Category","description":"This is a new test category"}]}
+5. Observation: The response was successful, and the data matches the expected format.
+---------------------------------------------------------
+Scenario 6: Delete a Specific Category by ID
+---------------------------------------------------------
+1. Description: Use a DELETE request to delete a specific category using its ID.
+2. Command: curl -X DELETE http://localhost:4567/categories/2
+3. Expected Output: N/A
+4. Result: N/A
+5. Observation: The category was deleted successfully. Verification was performed by attempting to retrieve the category using a GET request and receiving a "Could not find an instance" error message.
+---------------------------------------------------------
+Scenario 7: Test Invalid Data Types in POST Request
+---------------------------------------------------------
+1. Description: Send a POST request with invalid data types for the `title` and `description` fields.
+2. Command: 
+    curl -X POST http://localhost:4567/categories \
+    -H "Content-Type: application/json" \
+    -d '{"title": 12345, "description": false}'
+3. Expected Output: Status code 400 Bad Request.
+4. Result: {"id":"3","title":"12345.0","description":"false"}
+5. Observation: The API does not validate data types correctly and accepted the invalid input. It returned a `201 Created` status instead of `400 Bad Request`.
+---------------------------------------------------------
+
+---------------------------------------------------------
+Session Findings:
+---------------------------------------------------------
+- The `/categories` endpoint successfully handles GET, POST, and DELETE requests.
+- The `/categories` endpoint returns an error message for malformed JSON but responds with a `200 OK` status instead of `400 Bad Request`.
+- The API does not validate the data types for `title` and `description` fields when creating categories.
+- The DELETE request correctly removes the category and returns no output.
+
+---------------------------------------------------------
+List of Concerns:
+---------------------------------------------------------
+- The `/categories` endpoint should return a `400 Bad Request` for malformed JSON, but it returns `200 OK` instead.
+- The `/categories` endpoint does not validate input field types properly and allows invalid data to be posted.
+
+---------------------------------------------------------
+New Testing Ideas:
+---------------------------------------------------------
+- Test how the API handles concurrent POST requests to the `/categories` endpoint.
+- Test edge cases with extremely large input values for the `title` and `description` fields in categories.
+- Investigate whether PATCH requests can be used to update fields for categories, even though they are undocumented.
