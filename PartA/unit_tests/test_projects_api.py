@@ -130,11 +130,17 @@ class TestProjectsAPI(unittest.TestCase):
         response = requests.post(f"{BASE_URL}/projects", headers=headers, data=json.dumps(payload))
         self.assertEqual(response.status_code, 400)
 
-    def test_create_project_malformed_json(self):
+    def test_create_project_malformed_data(self):
         """Test POST /projects with malformed JSON"""
         headers = {'Content-Type': 'application/json'}
         payload = '{"title": "Malformed JSON Project", "completed": false'  # Missing closing brace
         response = requests.post(f"{BASE_URL}/projects", headers=headers, data=payload)
+        self.assertEqual(response.status_code, 400)
+
+        # Malformed XML
+        headers_xml = {'Content-Type': 'application/xml'}
+        malformed_xml = '<project><title>Malformed XML Project</title><completed>false'  # Missing closing tags
+        response = requests.post(f"{BASE_URL}/projects", headers=headers_xml, data=malformed_xml)
         self.assertEqual(response.status_code, 400)
 
     def test_get_projects_unsupported_accept(self):
