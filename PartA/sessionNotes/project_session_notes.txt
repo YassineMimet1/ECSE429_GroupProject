@@ -1,0 +1,192 @@
+---------------------------------------------------------
+Project Name: REST API Todo List Manager
+Session Date: Oct 7, 2024
+Duration: 45 minutes
+Environment: 
+  - OS: MacOS
+  - Screen Resolution: 1920x1080
+  - Browser/Tool Used: curl (Terminal)
+
+---------------------------------------------------------
+Charter:
+---------------------------------------------------------
+Identify the capabilities and areas of potential instability in the REST API Todo List Manager application, focusing on testing the functionality related to managing `categories` using `curl`. This includes creating, retrieving, updating, and deleting categories, as well as checking data consistency, relationship management, and error handling.
+---------------------------------------------------------
+Preparation:
+---------------------------------------------------------
+1. Start the Application: 
+   Command: java -jar runTodoManagerRestAPI-1.5.5.jar
+   Output: Valid Model Names -model=
+        todoManager
+        Model todoManager : Number of app versions available (e.g. -version=2, -versionName=profile1) are: 4
+        1 - v0 : prototype
+        2 - v1 : non compressed relationships with guids
+        3 - v2 : compressed relationships with guids
+        4 - v3 : compressed relationships with ids
+        Using model todoManager
+        Running on port 4567
+        e.g. http://localhost:4567
+
+2. Review the API Documentation at: `http://localhost:4567/docs`
+
+---------------------------------------------------------
+Session Start Time: 2:29 PM
+---------------------------------------------------------
+Testers:
+- Name: Yassine Mimet
+- Email: yassine.mimet@mail.mcgill.ca  
+- Student ID: 260980175
+
+---------------------------------------------------------
+Testing Tools Used:
+---------------------------------------------------------
+- Tool: `curl` (Terminal)
+- Documentation: Used Swagger UI (`http://localhost:4567/docs/swagger`)
+
+--> We'll start with capability testing.
+
+---------------------------------------------------------
+---------------------------------------------------------
+Test Scenarios and Execution: '/projects'
+---------------------------------------------------------
+Scenario 1: Verify GET Request for All Projects
+---------------------------------------------------------
+1. Description: Retrieve all projects to verify the basic `GET` functionality.
+2. Command: curl -X GET http://localhost:4567/projects -H "Accept: application/json"
+3. Expected Output: Status code `200` and a list of projects in JSON format.
+4. Result: {"projects":[{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"1"},{"id":"2"}]}]}
+5. Observation: The response was successful, and the data matches the expected format.
+
+---------------------------------------------------------
+Scenario 2: Verify HEAD Request for All Projects
+---------------------------------------------------------
+1. Description: Use a HEAD request to retrieve only the headers for all projects to verify the presence of metadata without fetching the content.
+2. Command: curl -I http://localhost:4567/projects
+3. Expected Output: Status code `200` and response headers displayed
+4. Result: 
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Date: Sun, 7 Oct 2024 18:15:23 GMT
+    Transfer-Encoding: chunked
+    Server: Jetty(9.4.z-SNAPSHOT)
+5. Observation: The HEAD request returned the correct headers.
+
+---------------------------------------------------------
+Scenario 3: Create a New Project
+---------------------------------------------------------
+1. Description: Create a new project using a `POST` request and verify that it is successfully created.
+2. Command: 
+    curl -X POST http://localhost:4567/projects \
+    -H "Content-Type: application/json" \
+    -d '{
+    "title": "New Project",
+    "completed": false,
+    "active": true,
+    "description": "Project Description"
+    }'
+3. Expected Output: A new project is displayed in the response with its assigned ID.
+4. Result: {"id":"2","title":"New Project","completed":"false","active":"true","description":"Project Description"}
+5. Observation: The project was successfully created, and the response data matches the expected format.
+
+---------------------------------------------------------
+Test Scenarios and Execution: '/projects/:id'
+---------------------------------------------------------
+Scenario 4: Retrieve a Specific Project by ID
+---------------------------------------------------------
+1. Description: Use a GET request to retrieve the details of a specific project using its ID.
+2. Command: curl -X GET http://localhost:4567/projects/2 -H "Accept: application/json"
+3. Expected Output: The specific project with ID `2` is returned in a list by itself.
+4. Result: {"projects":[{"id":"2","title":"New Project","completed":"false","active":"true","description":"Project Description"}]}
+5. Observation: The project was successfully retrieved.
+
+---------------------------------------------------------
+Scenario 5: Update a Specific Project by ID Using PUT
+---------------------------------------------------------
+1. Description: Use a PUT request to update the details of a specific project.
+2. Command: 
+    curl -X PUT http://localhost:4567/projects/2 \
+    -H "Content-Type: application/json" \
+    -d '{
+    "title": "",
+    "description": "Updated project"
+    }'
+3. Expected Output: The updated project details in JSON format.
+4. Result: {"id":"2","title":"","completed":"false","active":"true","description":"Updated description"}
+5. Observation: The project was successfully updated.
+
+---------------------------------------------------------
+Scenario 3: Delete a Specific Project by ID
+---------------------------------------------------------
+1. Description: Use a DELETE request to delete a specific project using its ID.
+2. Command: curl -X DELETE http://localhost:4567/projects/2
+3. Expected Output: No content or confirmation message, followed by a 404 when attempting to retrieve the deleted project.
+4. Result: After running:
+    curl -X GET http://localhost:4567/projects/2 -H "Accept: application/json"
+    The output was: {"errorMessages":["Could not find an instance with projects/2"]}
+5. Observation: The project was deleted successfully.
+
+---------------------------------------------------------
+Test Scenarios and Execution: '/projects/:id/tasks'
+---------------------------------------------------------
+Scenario 1: Retrieve Tasks Associated with a Specific Project
+---------------------------------------------------------
+1. Description: Use a GET request to retrieve all tasks associated with a project using its ID.
+2. Command: curl -X GET http://localhost:4567/projects/1/tasks -H "Accept: application/json"
+3. Expected Output: A list of tasks related to the project.
+4. Result: {"todos":[{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}],"categories":[{"id":"1"}]},{"id":"2","title":"file paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}]}]}
+5. Observation: The response successfully returned the associated tasks.
+
+---------------------------------------------------------
+Scenario 2: Create a Relationship Between a Project and a Task
+---------------------------------------------------------
+1. Description: Use a POST request to link a task to a project by associating a specific task ID with the project ID.
+2. Command: 
+    curl -X POST http://localhost:4567/projects/1/tasks \
+    -H "Content-Type: application/json" \
+    -d '{"id": "1"}'
+3. Expected Output: No content, indicating the relationship was created.
+4. Result: The POST request returned no output, but we verified the relationship was created using the following GET request.
+5. Observation: Task 1 was successfully linked to project 1.
+
+---------------------------------------------------------
+Scenario 3: Remove a Relationship Between a Project and a Task
+---------------------------------------------------------
+1. Description: Use a DELETE request to unlink a task from a project using the task's ID.
+2. Command: curl -X DELETE http://localhost:4567/projects/1/tasks/1
+3. Expected Output: No content, indicating the relationship was deleted.
+4. Result: No output, but upon running a GET request on `/projects/1/tasks`, we confirmed that Task 1 was successfully unlinked.
+5. Observation: The relationship between the project and the task was successfully removed.
+
+---------------------------------------------------------
+Test Scenarios and Execution: '/projects/:id/categories'
+---------------------------------------------------------
+Scenario 1: Retrieve Categories Associated with a Specific Project
+---------------------------------------------------------
+1. Description: Use a GET request to retrieve all categories associated with a project using its ID.
+2. Command: curl -X GET http://localhost:4567/projects/1/categories -H "Accept: application/json"
+3. Expected Output: A list of categories related to the project.
+4. Result: {"categories":[]}
+5. Observation: The response successfully returned the associated categories.
+
+---------------------------------------------------------
+Scenario 2: Create a Relationship Between a Project and a Category
+---------------------------------------------------------
+1. Description: Use a POST request to link a category to a project.
+2. Command: 
+    curl -X POST http://localhost:4567/projects/1/categories \
+    -H "Content-Type: application/json" \
+    -d '{"id": "2"}'
+3. Expected Output: No content, indicating the relationship was created.
+4. Result: No output, but we verified the relationship was created using a GET request in the next scenario.
+5. Observation: Category 2 was successfully linked to Project 1.
+
+---------------------------------------------------------
+Scenario 3: Remove a Relationship Between a Project and a Category
+---------------------------------------------------------
+1. Description: Use a DELETE request to unlink a category from a project using the category's ID.
+2. Command: curl -X DELETE http://localhost:4567/projects/1/categories/2
+3. Expected Output: No content, indicating the relationship was deleted.
+4. Result: No output, but upon running a GET request on `/projects/1/categories`, we confirmed that Category 2 was successfully unlinked.
+5. Observation: The relationship between the project and the category was successfully removed.
+
+---------------------------------------------------------
