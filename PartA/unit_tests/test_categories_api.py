@@ -81,7 +81,6 @@ class TestCategoriesAPI(unittest.TestCase):
         malformed_xml = '<category><title>Invalid XML</title><description>'  # Missing closing tag for description
         response = requests.post(f"{BASE_URL}/categories", headers=headers_xml, data=malformed_xml)
         self.assertEqual(response.status_code, 400, msg="Expected 400 Bad Request for malformed XML")
-        print(f"Malformed XML response: {response.text}")
 
 
     def test_get_category_by_id(self):
