@@ -55,7 +55,7 @@ class TestTodoAPI(unittest.TestCase):
         self.category_id = self.__class__.category_id
 
     def test_post_todos(self):
-        """Test POST /todos - Valid, Invalid JSON, and Malformed JSON Cases"""
+        """Test POST /todos - Valid, Invalid JSON, Malformed JSON and Malformed XML Cases"""
         headers = {'Content-Type': 'application/json'}
 
         # Valid POST request
@@ -73,7 +73,13 @@ class TestTodoAPI(unittest.TestCase):
         invalid_json = {"title": 12345, "doneStatus": "not_a_boolean", "description": False}
         response = requests.post(f"{BASE_URL}/todos", headers=headers, json=invalid_json)
         self.assertEqual(response.status_code, 400)
-    
+
+        headers_xml = {'Content-Type': 'application/xml'}
+        malformed_xml = '<todo><title>Invalid Todo</title><doneStatus>true'  # Missing closing tags
+        response = requests.post(f"{BASE_URL}/todos", headers=headers_xml, data=malformed_xml)
+        self.assertEqual(response.status_code, 400)
+        
+
     def test_head_todos(self):
         """Test HEAD /todos - Valid Case"""
         response = requests.head(f"{BASE_URL}/todos")
