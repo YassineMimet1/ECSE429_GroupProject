@@ -70,20 +70,17 @@ class TestCategoriesAPI(unittest.TestCase):
         malformed_json = '{"title": "Invalid Category", "description":'
         response = requests.post(f"{BASE_URL}/categories", headers=headers, data=malformed_json)
         self.assertIn(response.status_code, [400, 200], msg="Expected 400 Bad Request or 200 OK for malformed JSON")
-        print(f"Malformed JSON response: {response.text}")
 
         # Invalid JSON types
         invalid_json = {"title": 12345, "description": False}
         response = requests.post(f"{BASE_URL}/categories", headers=headers, json=invalid_json)
         self.assertIn(response.status_code, [400, 201], msg="Expected 400 Bad Request or 201 Created for invalid JSON types")
-        print(f"Invalid JSON types response: {response.text}")
 
         # Invalid XML 
         headers_xml = {'Content-Type': 'application/xml'}
         malformed_xml = '<category><title>Invalid XML</title><description>'  # Missing closing tag for description
         response = requests.post(f"{BASE_URL}/categories", headers=headers_xml, data=malformed_xml)
         self.assertEqual(response.status_code, 400, msg="Expected 400 Bad Request for malformed XML")
-        print(f"Malformed XML response: {response.text}")
 
 
     def test_get_category_by_id(self):
