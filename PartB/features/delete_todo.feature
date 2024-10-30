@@ -1,5 +1,7 @@
 Feature: Delete a Todo
 
+    I want to delete a Todo.
+
   Background:
     Given the Todo API is running for Delete Todo
     And a todo with ID <todo_id> exists to delete

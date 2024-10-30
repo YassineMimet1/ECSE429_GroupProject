@@ -1,8 +1,11 @@
 Feature: Link Todo to Category
 
+    I want to link a Todo to a Category.
+
   Background:
     Given the Todo API is running for Linking Todos
     And a category with ID <category_id> exists for linking todo to a category
+    And a second category with ID <second_category_id> exists for linking todo to another category
     And a todo with ID <todo_id> exists for linking todo to a category
 
   # Normal Flow
@@ -11,9 +14,9 @@ Feature: Link Todo to Category
     Then the response status for Linking Todos should be 201
 
   # Alternate Flow
-  Scenario: Linking a todo to a non-existent category
-    When the user sends a POST request to /categories/99999/todos with <todo_id>
-    Then the response status for Linking Todos should be 404
+  Scenario: Link the same todo to a different category
+    When the user sends a POST request to /categories/<second_category_id>/todos with <todo_id>
+    Then the response status for Linking Todos should be 201
 
   # Error Flow
   Scenario: Linking a non-existent todo to a category

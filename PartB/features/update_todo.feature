@@ -1,5 +1,7 @@
 Feature: Update a Todo
 
+    I want to update a Todo.
+
   Background:
     Given the Todo API is running for Update Todo
     And a todo with ID <todo_id> exists
