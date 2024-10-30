@@ -18,4 +18,4 @@ Feature: Create a Todo
     # Error flow
   Scenario: Malformed JSON request
     When the user sends a POST request to /todos with malformed JSON
-    Then the response status should be 400k
+    Then the response status should be 400
