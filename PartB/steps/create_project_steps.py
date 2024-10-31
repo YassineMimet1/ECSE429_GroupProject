@@ -3,6 +3,11 @@ from behave import *
 
 BASE_URL = "http://localhost:4567"
 
+@given('the Todo API is running')
+def step_check_api_running(context):
+    response = requests.get(BASE_URL)
+    assert response.status_code == 200, f"API is not running. Status: {response.status_code}"
+
 @when('I send a POST request to /projects with valid project data')
 def step_send_post_valid_project(context):
     headers = {'Content-Type': 'application/json'}
