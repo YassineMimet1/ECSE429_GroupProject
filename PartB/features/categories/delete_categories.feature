@@ -4,6 +4,7 @@ Feature: Delete a Category
 
   Background:
     Given the Category API is running for Delete Category
+    And a category with ID "1" exists
 
   Scenario: Successfully delete a category
     When the user sends a DELETE request to /categories/1

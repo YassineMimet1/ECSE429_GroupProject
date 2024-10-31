@@ -4,6 +4,7 @@ Feature: Update a Category
 
   Background:
     Given the Category API is running for Update Category
+    And a category with ID "1" exists for update
 
   Scenario: Successfully update a category
     When the user sends a PUT request to /categories/1 with "Updated Work" and "Updated work tasks"
