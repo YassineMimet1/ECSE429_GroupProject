@@ -13,3 +13,10 @@ Feature: Delete a Category
   Scenario: Delete a non-existent category
     When the user sends a DELETE request to /categories/999
     Then the response status for Delete Category should be 404
+
+  Scenario: Unauthorized deletion attempt
+    When the user sends an unauthorized DELETE request to /categories/1
+    Then the response status for Delete Category should be 401
+    And the response should indicate an authorization error
+
+

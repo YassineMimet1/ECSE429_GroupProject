@@ -15,3 +15,10 @@ Feature: View Categories
     When the user sends a GET request to /categories
     Then the response status for View Categories should be 200
     And the response should contain an empty list
+
+  Scenario: View categories with multiple existing categories
+    Given the database is cleared of all categories
+    And multiple categories exist in the database
+    When the user sends a GET request to /categories
+    Then the response status for View Categories should be 200
+    And the response should contain a list of multiple categories

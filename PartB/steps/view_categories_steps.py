@@ -20,6 +20,21 @@ def step_clear_all_categories(context):
             delete_response = requests.delete(f"{BASE_URL}/categories/{category_id}")
             assert delete_response.status_code == 200, f"Failed to delete category {category_id}"
 
+@given('multiple categories exist in the database')
+def step_create_multiple_categories(context):
+    """Create multiple categories in the database for testing."""
+    categories = [
+        {"title": "Category 1", "description": "First test category"},
+        {"title": "Category 2", "description": "Second test category"},
+        {"title": "Category 3", "description": "Third test category"}
+    ]
+    context.category_ids = []
+    for category_data in categories:
+        create_response = requests.post(f"{BASE_URL}/categories", json=category_data)
+        assert create_response.status_code == 201, f"Failed to create category {category_data['title']}"
+        category_id = create_response.json().get("id")
+        context.category_ids.append(category_id)
+
 @when('the user sends a GET request to /categories')
 def step_view_all_categories(context):
     """Send a GET request to retrieve all categories."""
@@ -43,3 +58,10 @@ def step_check_response_empty_list_view_categories(context):
     categories = context.response.json().get('categories', [])
     assert isinstance(categories, list), "Categories field is not a list"
     assert len(categories) == 0, "Expected an empty list, but categories were found"
+
+@then('the response should contain a list of multiple categories')
+def step_check_response_multiple_categories(context):
+    """Verify that the response contains multiple categories."""
+    categories = context.response.json().get('categories', [])
+    assert isinstance(categories, list), "Categories field is not a list"
+    assert len(categories) >= 3, f"Expected multiple categories, but found {len(categories)}"
