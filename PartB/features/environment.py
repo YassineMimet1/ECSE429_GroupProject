@@ -12,7 +12,6 @@ def before_scenario(context, scenario):
     logger.info(f"Running before_scenario for: {scenario.name}")
     print("hello world")
 
-    # Example: Create a test category
     category_data = {"title": "Test Category", "description": "Category for testing"}
     response = requests.post(f"{BASE_URL}/categories", json=category_data)
     if response.status_code == 201:
@@ -21,7 +20,6 @@ def before_scenario(context, scenario):
     else:
         logger.error(f"Failed to create test category. Status: {response.status_code}")
 
-    # Example: Create a test todo
     todo_data = {"title": "Test Todo", "description": "Todo for testing"}
     response = requests.post(f"{BASE_URL}/todos", json=todo_data)
     if response.status_code == 201:
@@ -34,7 +32,6 @@ def after_scenario(context, scenario):
     """Restore the system to the initial state after each scenario."""
     logger.info(f"Running after_scenario for: {scenario.name}")
 
-    # Delete all categories
     response = requests.get(f"{BASE_URL}/categories", headers={"Accept": "application/json"})
     if response.status_code == 200:
         categories = response.json().get('categories', [])
@@ -42,7 +39,6 @@ def after_scenario(context, scenario):
             delete_response = requests.delete(f"{BASE_URL}/categories/{category['id']}")
             logger.info(f"Deleted category {category['id']}: {delete_response.status_code}")
 
-    # Delete all todos
     response = requests.get(f"{BASE_URL}/todos", headers={"Accept": "application/json"})
     if response.status_code == 200:
         todos = response.json().get('todos', [])
@@ -50,7 +46,6 @@ def after_scenario(context, scenario):
             delete_response = requests.delete(f"{BASE_URL}/todos/{todo['id']}")
             logger.info(f"Deleted todo {todo['id']}: {delete_response.status_code}")
 
-    # Delete all projects
     response = requests.get(f"{BASE_URL}/projects", headers={"Accept": "application/json"})
     if response.status_code == 200:
         projects = response.json().get('projects', [])
