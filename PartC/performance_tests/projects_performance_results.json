@@ -1,0 +1,34 @@
+[
+    {
+        "num_objects": 10,
+        "create_time": 0.025643110275268555,
+        "update_time": 0.0176849365234375,
+        "delete_time": 0.027732133865356445,
+        "peak_cpu_percent": 18.3,
+        "peak_memory_percent": 80.0
+    },
+    {
+        "num_objects": 100,
+        "create_time": 0.23305964469909668,
+        "update_time": 0.26032423973083496,
+        "delete_time": 0.3144361972808838,
+        "peak_cpu_percent": 27.8,
+        "peak_memory_percent": 79.7
+    },
+    {
+        "num_objects": 500,
+        "create_time": 1.0521068572998047,
+        "update_time": 1.4552388191223145,
+        "delete_time": 1.6548349857330322,
+        "peak_cpu_percent": 30.6,
+        "peak_memory_percent": 79.7
+    },
+    {
+        "num_objects": 1000,
+        "create_time": 2.01435923576355,
+        "update_time": 3.49627685546875,
+        "delete_time": 4.3673810958862305,
+        "peak_cpu_percent": 47.1,
+        "peak_memory_percent": 82.1
+    }
+]

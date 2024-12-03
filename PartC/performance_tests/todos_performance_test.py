@@ -1,69 +1,77 @@
 import requests
 import time
 import json
+import psutil
+from threading import Thread
 
 BASE_URL = "http://localhost:4567"
 
-# Function to create Todos
-def create_todos(num_todos):
-    times = []
-    for i in range(num_todos):
+system_metrics = []
+
+def monitor_resources(interval=0.5):
+    """Continuously monitor CPU and memory usage."""
+    global system_metrics
+    while True:
+        system_metrics.append({
+            "cpu_percent": psutil.cpu_percent(interval=None),
+            "memory_percent": psutil.virtual_memory().percent
+        })
+        time.sleep(interval)
+
+def create_todos(num):
+    start_time = time.time()
+    for i in range(num):
         payload = {"title": f"Todo {i+1}", "doneStatus": False, "description": f"Description {i+1}"}
-        start_time = time.time()
-        response = requests.post(f"{BASE_URL}/todos", json=payload)
-        elapsed_time = time.time() - start_time
-        times.append(elapsed_time)
-    return times
+        requests.post(f"{BASE_URL}/todos", json=payload)
+    return time.time() - start_time
 
-# Function to update Todos
-def update_todos(num_todos):
-    times = []
-    for i in range(1, num_todos + 1):
+def update_todos(num):
+    start_time = time.time()
+    for i in range(1, num + 1):
         payload = {"title": f"Updated Todo {i}", "doneStatus": True, "description": f"Updated Description {i}"}
-        start_time = time.time()
-        response = requests.put(f"{BASE_URL}/todos/{i}", json=payload)
-        elapsed_time = time.time() - start_time
-        times.append(elapsed_time)
-    return times
+        requests.put(f"{BASE_URL}/todos/{i}", json=payload)
+    return time.time() - start_time
 
-# Function to delete Todos
-def delete_todos(num_todos):
-    times = []
-    for i in range(1, num_todos + 1):
-        start_time = time.time()
-        response = requests.delete(f"{BASE_URL}/todos/{i}")
-        elapsed_time = time.time() - start_time
-        times.append(elapsed_time)
-    return times
+def delete_todos(num):
+    start_time = time.time()
+    for i in range(1, num + 1):
+        requests.delete(f"{BASE_URL}/todos/{i}")
+    return time.time() - start_time
 
-# Performance Test
 def performance_test():
-    test_sizes = [10, 20, 50, 100]  # Different numbers of objects to test
+    global system_metrics
+    test_sizes = [10, 100, 500, 1000]
     results = []
 
     for size in test_sizes:
-        print(f"\nTesting with {size} Todos...")
+        system_metrics = []
 
-        print("Creating Todos...")
-        create_times = create_todos(size)
+        monitor_thread = Thread(target=monitor_resources)
+        monitor_thread.daemon = True  
+        monitor_thread.start()
 
-        print("Updating Todos...")
-        update_times = update_todos(size)
+        create_time = create_todos(size)
+        update_time = update_todos(size)
+        delete_time = delete_todos(size)
 
-        print("Deleting Todos...")
-        delete_times = delete_todos(size)
+        time.sleep(1)
+
+        peak_cpu_percent = max([m["cpu_percent"] for m in system_metrics])
+        peak_memory_percent = max([m["memory_percent"] for m in system_metrics])
 
         results.append({
             "num_objects": size,
-            "create_times": create_times,
-            "update_times": update_times,
-            "delete_times": delete_times
+            "create_time": create_time,
+            "update_time": update_time,
+            "delete_time": delete_time,
+            "peak_cpu_percent": peak_cpu_percent,
+            "peak_memory_percent": peak_memory_percent
         })
 
-    # Save results to file
+        time.sleep(5)  # Delay between tests for system stabilization
+
     with open("todos_performance_results.json", "w") as file:
         json.dump(results, file, indent=4)
-    print("\nResults saved to todos_performance_results.json")
 
 if __name__ == "__main__":
     performance_test()

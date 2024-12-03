@@ -1,79 +1,87 @@
 import requests
 import time
 import json
+import psutil
+from threading import Thread
 
 BASE_URL = "http://localhost:4567"
 
-# Function to create Projects
-def create_projects(num_projects):
-    times = []
-    for i in range(num_projects):
+system_metrics = []
+
+def monitor_resources(interval=0.5):
+    """Continuously monitor CPU and memory usage."""
+    global system_metrics
+    while True:
+        system_metrics.append({
+            "cpu_percent": psutil.cpu_percent(interval=None),
+            "memory_percent": psutil.virtual_memory().percent
+        })
+        time.sleep(interval)
+
+def create_projects(num):
+    start_time = time.time()
+    for i in range(num):
         payload = {
             "title": f"Project {i+1}",
             "description": f"Description {i+1}",
             "completed": False,
             "active": True
         }
-        start_time = time.time()
-        response = requests.post(f"{BASE_URL}/projects", json=payload)
-        elapsed_time = time.time() - start_time
-        times.append(elapsed_time)
-    return times
+        requests.post(f"{BASE_URL}/projects", json=payload)
+    return time.time() - start_time
 
-# Function to update Projects
-def update_projects(num_projects):
-    times = []
-    for i in range(1, num_projects + 1):
+def update_projects(num):
+    start_time = time.time()
+    for i in range(1, num + 1):
         payload = {
             "title": f"Updated Project {i}",
             "description": f"Updated Description {i}",
             "completed": True,
             "active": False
         }
-        start_time = time.time()
-        response = requests.put(f"{BASE_URL}/projects/{i}", json=payload)
-        elapsed_time = time.time() - start_time
-        times.append(elapsed_time)
-    return times
+        requests.put(f"{BASE_URL}/projects/{i}", json=payload)
+    return time.time() - start_time
 
-# Function to delete Projects
-def delete_projects(num_projects):
-    times = []
-    for i in range(1, num_projects + 1):
-        start_time = time.time()
-        response = requests.delete(f"{BASE_URL}/projects/{i}")
-        elapsed_time = time.time() - start_time
-        times.append(elapsed_time)
-    return times
+def delete_projects(num):
+    start_time = time.time()
+    for i in range(1, num + 1):
+        requests.delete(f"{BASE_URL}/projects/{i}")
+    return time.time() - start_time
 
-# Performance Test
 def performance_test():
-    test_sizes = [10, 20, 50, 100]
+    global system_metrics
+    test_sizes = [10, 100, 500, 1000]
     results = []
 
     for size in test_sizes:
-        print(f"\nTesting with {size} Projects...")
+        system_metrics = []
 
-        print("Creating Projects...")
-        create_times = create_projects(size)
+        monitor_thread = Thread(target=monitor_resources)
+        monitor_thread.daemon = True 
+        monitor_thread.start()
 
-        print("Updating Projects...")
-        update_times = update_projects(size)
+        create_time = create_projects(size)
+        update_time = update_projects(size)
+        delete_time = delete_projects(size)
 
-        print("Deleting Projects...")
-        delete_times = delete_projects(size)
+        time.sleep(1)
+
+        peak_cpu_percent = max([m["cpu_percent"] for m in system_metrics])
+        peak_memory_percent = max([m["memory_percent"] for m in system_metrics])
 
         results.append({
             "num_objects": size,
-            "create_times": create_times,
-            "update_times": update_times,
-            "delete_times": delete_times
+            "create_time": create_time,
+            "update_time": update_time,
+            "delete_time": delete_time,
+            "peak_cpu_percent": peak_cpu_percent,
+            "peak_memory_percent": peak_memory_percent
         })
 
-    # Save results to file
+        time.sleep(5)  # Delay between tests for system stabilization
+
     with open("projects_performance_results.json", "w") as file:
         json.dump(results, file, indent=4)
-    print("\nResults saved to projects_performance_results.json")
 
 if __name__ == "__main__":
     performance_test()
